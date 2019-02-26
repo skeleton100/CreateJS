@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tank Shooting</title>
+    <script src="https://code.createjs.com/1.0.0/createjs.min.js"></script>
+    <script>
+        window.addEventListener("load",init);
+        function init() {
+            // stage making
+            let stage = new createjs.Stage("myCanvas");
+
+            // keyHandling variable
+            let isPressleft  = false;
+            let isPressRight = false;
+            let isPressUp    = false;
+            let isPressDown  = false;
+            const SPACE = 32;
+            const LEFT = 37;
+            const UP = 38;
+            const RIGHT = 39;
+            const DOWN = 40;
+
+            let bulletList = [];
+            let angle = 0;
+            let speed = 0;
+            let count = 0;
+            let GameOver;
+
+            // BackGround
+            let bg = new createjs.Shape();
+            bg.graphics.beginFill("block");
+            bg.graphics.drawRect(0, 0, 960, 540);
+            stage.addChild(bg);
+
+
+            // Tank Class
+            class Tank extends createjs.Shape {
+                constructor(x, y, colorR, colorG, colorB, rotation, bulletList, bullet) {
+                    super();
+
+                    this.x = x;
+                    this.y = y;
+                    this.colorR = colorR;
+                    this.colorG = colorG;
+                    this.colorB = colorB;
+                    this.rotation = rotation;
+                    this.bulletList = Array();
+                    this.bullet = bullet;
+
+                    this.graphics.beginFill(createjs.Graphics.getRGB(colorR,colorG,colorB));
+                    this.graphics.moveTo(+10, -2)
+                        .lineTo(+10, +2)
+                        .lineTo(+5, +2)
+                        .lineTo(+5, +5)
+                        .lineTo(-10, +5)
+                        .lineTo(-10, -5)
+                        .lineTo(+5, -5)
+                        .lineTo(+5, -2);
+                }
+            }
+
+            // player
+            let player = new Tank(480,270,255,255,255,d,bulletList,bullet);
+            stage.addChild(player);
+
+            // KeyHandling
+            window.addEventListener("keydown", handleKeyDown);
+            window.addEventListener("keyup", handleKeyUp);
+
+            function handleKeyDown(event){
+                let keyCode = event.keyCode;
+
+                if (keyCode == SPACE) {
+                    console.log("space!!!");
+                        let bullet = new createjs.Shape();
+                        bullet.graphics.beginFill("white").drawCircle(0, 0, 3);
+                        bullet.x = player.x;
+                        bullet.y = player.y;
+
+                        bulletList.push(bullet);
+                        stage.addChild(bullet);
+                    //}
+                }
+
+                if (keyCode === LEFT) {
+                    isPressleft = true;
+                }
+                else if (keyCode === UP) {
+                    isPressUp = true;
+                }
+                else if (keyCode === RIGHT) {
+                    isPressRight = true;
+                }
+                else if (keyCode === DOWN) {
+                    isPressDown = true;
+                }
+            }
+
+            function handleKeyUp(event) {
+                let keyCode = event.keyCode;
+
+                if (keyCode === LEFT) {
+                    isPressleft = false;
+                }
+                else if (keyCode === UP) {
+                    isPressUp = false;
+                }
+                else if (keyCode === RIGHT) {
+                    isPressRight = false;
+                }
+                else if (keyCode === DOWN) {
+                    isPressDown = false;
+                }
+            }
+            //alert("Debug");
+            if (isPressleft === true){
+                angle -= 5;
+            }
+            else if (isPressRight === true){
+                angle += 5;
+            }
+
+            if (isPressUp === true){
+                speed += 1;
+            }
+            else if (isPressDown === true){
+                speed -= 1;
+            }
+
+            let containerA = new createjs.Container();
+            containerA.x = 480;
+            containerA.y = 270;
+
+            stage.addChild(containerA);
+
+            for (let i = 0; i < 10; i++){
+                let Ax = 200 * Math.sin(i * 360 / 10 * Math.PI / 180);
+                let Ay = 200 * Math.cos(i * 360 / 10 * Math.PI / 180);
+
+                let enemyA = new Tank(Ax,Ay,255,0,0);
+
+                containerA.addChild(enemyA);
+            }
+
+            createjs.Ticker.timingMode = createjs.Ticker.RAF;
+            createjs.Ticker.addEventListener("tick", handleTick);
+            function handleTick() {
+                count++ ;
+
+                player.rotation = angle;
+                // Convert radian
+                let radian = angle * Math.PI / 180;
+                let vx = speed * Math.cos(radian);
+                let vy = speed * Math.sin(radian);
+
+                player.x += vx;
+                player.y += vy;
+                // 摩擦
+                speed *= 0.90;
+                // 画面端の処理を入れる
+                if (player.x < 0) ship.x = 0;
+                if (player.x > stage.canvas.width) ship.x = stage.canvas.width;
+                if (player.y < 0) ship.y = 0;
+                if (player.y > stage.canvas.height) ship.y = stage.canvas.height;
+
+                if (count % 50 === 0){
+                    let bulletA = new createjs.Shape();
+                    bulletA.graphics.beginFill("white").drawCircle(0, 0, 3);
+                    bulletA.x = containerA.x;
+                    bulletA.y = containerA.y;
+
+                    bulletListA.push(bulletA);
+                    stage.addChild(bulletListA);
+                }
+
+                for (let i = 0; i < bulletListA.length; i++){
+                    let ALocal = bulletListA[i].localToLocal(0,0,player);
+                    if(player.hitTest(ALocal.x, ALocal.y)){
+                        console.log("EnemyA hit!");
+                        GameOver();
+                    }
+
+                }
+
+            }
+
+            stage.update();
+
+        }
+
+    </script>
+</head>
+<body>
+<canvas id="myCanvas" width="960" height="540"></canvas>
+</body>
+</html>
